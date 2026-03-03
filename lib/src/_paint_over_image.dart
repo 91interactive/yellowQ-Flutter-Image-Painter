@@ -445,7 +445,8 @@ class ImagePainterState extends State<ImagePainter> {
 
   bool get isEdited => _controller.paintHistory.isNotEmpty;
 
-  Size get imageSize => Size(_image?.width.toDouble() ?? 0, _image?.height.toDouble() ?? 0);
+  Size get imageSize =>
+      Size(_image?.width.toDouble() ?? 0, _image?.height.toDouble() ?? 0);
 
   ///Converts the incoming image type from constructor to [ui.Image]
   Future<void> _resolveAndConvertImage() async {
@@ -511,7 +512,8 @@ class ImagePainterState extends State<ImagePainter> {
   Future<ui.Image> _loadNetworkImage(String path) async {
     final completer = Completer<ImageInfo>();
     final img = NetworkImage(path);
-    img.resolve(const ImageConfiguration()).addListener(ImageStreamListener((info, _) => completer.complete(info)));
+    img.resolve(const ImageConfiguration()).addListener(
+        ImageStreamListener((info, _) => completer.complete(info)));
     final imageInfo = await completer.future;
     _isLoaded.value = true;
     return imageInfo.image;
@@ -539,7 +541,6 @@ class ImagePainterState extends State<ImagePainter> {
 
   ///paints image on given constrains for drawing if image is not null.
   Widget _paintImage() {
-    var imageSizeL = Size(MediaQuery.of(context).size.aspectRatio * imageSize.height, imageSize.height);
     return Container(
       height: widget.height ?? double.maxFinite,
       width: widget.width ?? double.maxFinite,
@@ -548,8 +549,7 @@ class ImagePainterState extends State<ImagePainter> {
           if (widget.controlsAtTop && widget.showControls) _buildControls(),
           Expanded(
             child: FittedBox(
-              alignment: FractionalOffset.topCenter,
-              fit: BoxFit.cover,
+              alignment: FractionalOffset.center,
               child: ClipRect(
                 child: AnimatedBuilder(
                   animation: _controller,
@@ -563,7 +563,7 @@ class ImagePainterState extends State<ImagePainter> {
                       onInteractionUpdate: _scaleUpdateGesture,
                       onInteractionEnd: _scaleEndGesture,
                       child: CustomPaint(
-                        size: imageSizeL,
+                        size: imageSize,
                         willChange: true,
                         isComplex: true,
                         painter: DrawImage(
@@ -625,12 +625,14 @@ class ImagePainterState extends State<ImagePainter> {
               children: [
                 IconButton(
                   tooltip: textDelegate.undo,
-                  icon: widget.undoIcon ?? Icon(Icons.reply, color: Colors.grey[700]),
+                  icon: widget.undoIcon ??
+                      Icon(Icons.reply, color: Colors.grey[700]),
                   onPressed: () => _controller.undo(),
                 ),
                 IconButton(
                   tooltip: textDelegate.clearAllProgress,
-                  icon: widget.clearAllIcon ?? Icon(Icons.clear, color: Colors.grey[700]),
+                  icon: widget.clearAllIcon ??
+                      Icon(Icons.clear, color: Colors.grey[700]),
                   onPressed: () => _controller.clear(),
                 ),
               ],
@@ -641,7 +643,8 @@ class ImagePainterState extends State<ImagePainter> {
   }
 
   _scaleStartGesture(ScaleStartDetails onStart) {
-    final _zoomAdjustedOffset = _transformationController.toScene(onStart.localFocalPoint);
+    final _zoomAdjustedOffset =
+        _transformationController.toScene(onStart.localFocalPoint);
     if (!widget.isSignature) {
       _controller.setStart(_zoomAdjustedOffset);
       _controller.addOffsets(_zoomAdjustedOffset);
@@ -650,7 +653,8 @@ class ImagePainterState extends State<ImagePainter> {
 
   ///Fires while user is interacting with the screen to record painting.
   void _scaleUpdateGesture(ScaleUpdateDetails onUpdate) {
-    final _zoomAdjustedOffset = _transformationController.toScene(onUpdate.localFocalPoint);
+    final _zoomAdjustedOffset =
+        _transformationController.toScene(onUpdate.localFocalPoint);
     _controller.setInProgress(true);
     if (_controller.start == null) {
       _controller.setStart(_zoomAdjustedOffset);
@@ -660,18 +664,24 @@ class ImagePainterState extends State<ImagePainter> {
       _controller.addOffsets(_zoomAdjustedOffset);
     }
     if (_controller.onTextUpdateMode) {
-      _controller.paintHistory.lastWhere((element) => element.mode == PaintMode.text).offsets = [_zoomAdjustedOffset];
+      _controller.paintHistory
+          .lastWhere((element) => element.mode == PaintMode.text)
+          .offsets = [_zoomAdjustedOffset];
     }
   }
 
   ///Fires when user stops interacting with the screen.
   void _scaleEndGesture(ScaleEndDetails onEnd) {
     _controller.setInProgress(false);
-    if (_controller.start != null && _controller.end != null && (_controller.mode == PaintMode.freeStyle)) {
+    if (_controller.start != null &&
+        _controller.end != null &&
+        (_controller.mode == PaintMode.freeStyle)) {
       _controller.addOffsets(null);
       _addFreeStylePoints();
       _controller.offsets.clear();
-    } else if (_controller.start != null && _controller.end != null && _controller.mode != PaintMode.text) {
+    } else if (_controller.start != null &&
+        _controller.end != null &&
+        _controller.mode != PaintMode.text) {
       _addEndPoints();
     }
     _controller.resetStartAndEnd();
@@ -820,7 +830,9 @@ class ImagePainterState extends State<ImagePainter> {
           AnimatedBuilder(
             animation: _controller,
             builder: (_, __) {
-              final icon = paintModes(textDelegate).firstWhere((item) => item.mode == _controller.mode).icon;
+              final icon = paintModes(textDelegate)
+                  .firstWhere((item) => item.mode == _controller.mode)
+                  .icon;
               return PopupMenuButton(
                 tooltip: textDelegate.changeMode,
                 shape: ContinuousRectangleBorder(
@@ -863,7 +875,8 @@ class ImagePainterState extends State<ImagePainter> {
             shape: ContinuousRectangleBorder(
               borderRadius: BorderRadius.circular(20),
             ),
-            icon: widget.brushIcon ?? Icon(Icons.brush, color: Colors.grey[700]),
+            icon:
+                widget.brushIcon ?? Icon(Icons.brush, color: Colors.grey[700]),
             itemBuilder: (_) => [_showRangeSlider()],
           ),
           AnimatedBuilder(
@@ -872,7 +885,7 @@ class ImagePainterState extends State<ImagePainter> {
               if (_controller.canFill()) {
                 return Row(
                   children: [
-                    Checkbox.adaptive(
+                    Checkbox(
                       value: _controller.shouldFill,
                       onChanged: (val) {
                         _controller.update(fill: val);
@@ -900,7 +913,8 @@ class ImagePainterState extends State<ImagePainter> {
           ),
           IconButton(
             tooltip: textDelegate.clearAllProgress,
-            icon: widget.clearAllIcon ?? Icon(Icons.clear, color: Colors.grey[700]),
+            icon: widget.clearAllIcon ??
+                Icon(Icons.clear, color: Colors.grey[700]),
             onPressed: () {
               widget.onClear?.call();
               _controller.clear();
